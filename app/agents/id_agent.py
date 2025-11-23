@@ -15,12 +15,13 @@ class IDAgent:
 
         Required JSON:
         {{
-        "document_type": "id_card",
-        "name": "",
-        "dob": "",
-        "gender": "",
-        "id_number": "",
-        "issuer": ""
+            "document_type": "id_card",
+            "name": "",
+            "dob": "",
+            "gender": "",
+            "id_number": "",
+            "issuer": "",
+            "patient_id": ""
         }}
         """
         return await self.llm.generate(prompt)

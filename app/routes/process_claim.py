@@ -1,4 +1,4 @@
-from fastapi import APIRouter, UploadFile, File, Depends
+from fastapi import APIRouter, UploadFile, File, Depends, status, HTTPException
 from app.services.orchestrator import Orchestrator
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.database import get_db_session
@@ -16,24 +16,24 @@ async def process_claim(
 ):
     claim_result = await orch.process(files)
 
-    status = claim_result["claim_decision"]["status"]
+    status = claim_result.get("claim_decision", {}).get("status", "")
+    if status:
+        claim = Claim(
+            status=status,
+            data=claim_result
+        )
 
-    claim = Claim(
-        status=status,
-        data=claim_result
-    )
+        db.add(claim)
+        await db.commit()
+        await db.refresh(claim)
 
-    db.add(claim)
-    await db.commit()
-    await db.refresh(claim)
-
-    return {
-        "db_record": {
-            "id": claim.id,
-            "status": claim.status
-        },
-        "claim_data": claim.data
-    }
+        return {
+            "db_record": {
+                "id": claim.id,
+                "status": claim.status
+            },
+            "claim_data": claim.data
+        }
 
 @router.get("/claims")
 async def get_all_claims(db: AsyncSession = Depends(get_db_session)):

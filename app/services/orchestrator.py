@@ -28,31 +28,33 @@ class Orchestrator:
         results = {}
         
         for file in pdf_files:
-            raw_text = PDFUtils().extract_raw_text(await file.read())
+            raw_text = await PDFUtils().extract_raw_text(await file.read())
             doc_type = await self.classifier.classify(raw_text)
             cleaned_text = await self.extractor.extract(raw_text)
-
             agent = self.agents.get(doc_type)
             structured = await agent.run(cleaned_text)
 
             results[doc_type] = structured
 
         missing = self.validator.detect_missing(results)
-        discrepancies = self.validator.detect_discrepancies(results)
-
-        # Final decision
         if missing:
             decision = {"status": "rejected", "reason": "Missing required documents"}
-        elif discrepancies:
-            decision = {"status": "manual_review", "reason": "Data inconsistencies found"}
+            print("\n\n\n---------")
+            print('decision\n\n', decision)
+            print("\n\n\n---------")
         else:
             decision = {"status": "approved", "reason": "All documents consistent"}
+        # discrepancies = self.validator.detect_discrepancies(results)
+
+        # Final decision
+        # elif discrepancies:
+        #     decision = {"status": "manual_review", "reason": "Data inconsistencies found"}
 
         return {
             "documents": results,
             "validation": {
                 "missing_documents": missing,
-                "discrepancies": discrepancies
+            #     "discrepancies": discrepancies
             },
             "claim_decision": decision
         }

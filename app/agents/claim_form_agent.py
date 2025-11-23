@@ -15,14 +15,15 @@ class ClaimFormAgent:
 
         Output JSON:
         {{
-        "document_type": "claim_form",
-        "patient_name": "",
-        "policy_number": "",
-        "insurance_company": "",
-        "hospital_name": "",
-        "claim_amount": "",
-        "admission_date": "",
-        "discharge_date": ""
+            "document_type": "claim_form",
+            "patient_name": "",
+            "patient_id": "",
+            "policy_number": "",
+            "insurance_company": "",
+            "hospital_name": "",
+            "claim_amount": "",
+            "admission_date": "",
+            "discharge_date": ""
         }}
         """
         return await self.llm.generate(prompt)

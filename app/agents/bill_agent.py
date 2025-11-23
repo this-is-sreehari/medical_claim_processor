@@ -11,11 +11,13 @@ class BillAgent:
         Extract the following fields as JSON:
 
         {{
-          "patient_name": "",
-          "hospital_name": "",
-          "bill_amount": "",
-          "bill_date": "",
-          "line_items": []
+            "document_type": "bill",
+            "patient_name": "",
+            "patient_id": "",
+            "hospital_name": "",
+            "bill_amount": "",
+            "bill_date": "",
+            "line_items": []
         }}
 
         TEXT:

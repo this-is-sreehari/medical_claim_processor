@@ -15,14 +15,15 @@ class DischargeAgent:
 
         Return JSON only with:
         {{
-        "document_type": "discharge_summary",
-        "patient_name": "",
-        "hospital_name": "",
-        "admission_date": "",
-        "discharge_date": "",
-        "diagnosis": "",
-        "doctor_name": "",
-        "summary": ""
+            "document_type": "discharge_summary",
+            "patient_name": "",
+            "patient_id": "",
+            "hospital_name": "",
+            "admission_date": "",
+            "discharge_date": "",
+            "diagnosis": "",
+            "doctor_name": "",
+            "summary": ""
         }}
         """
         return await self.llm.generate(prompt)

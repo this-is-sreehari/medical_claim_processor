@@ -1,15 +1,18 @@
-import google.generativeai as genai
-import os, json
+from google import genai
+import os
 
 
 class GeminiClient:
     def __init__(self):
-        genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-        self.model = genai.GenerativeModel("gemini-1.5-pro")
-
-    async def generate(self, prompt: str) -> str:
-        response = self.model.generate_content(prompt)
+        self.client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
+        self.model_name = "gemini-2.5-flash"
+    
+    async def generate(self, prompt: str) -> dict:
         try:
-            return json.loads(response)
-        except:
-            return {"error": "Invalid discharge summary output", "raw": response}
+            response = await self.client.aio.models.generate_content(
+                model=self.model_name,
+                contents=prompt
+            )
+            return response.text
+        except Exception as e:
+            return {"error": str(e)}
