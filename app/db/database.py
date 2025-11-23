@@ -2,8 +2,9 @@ from sqlalchemy.orm import declarative_base
 from typing import AsyncGenerator
 from sqlalchemy import DateTime
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession,async_sessionmaker
-import datetime
 from .config import SQLALCHEMY_DB_URL
+import datetime
+
 
 Base = declarative_base(
     type_annotation_map = {

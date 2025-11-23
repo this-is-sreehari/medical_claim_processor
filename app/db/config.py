@@ -1,6 +1,7 @@
 from dotenv import load_dotenv
 import os
 
+
 load_dotenv()
 
 PG_USER = os.getenv('POSTGRES_USER')
