@@ -8,6 +8,7 @@ from app.agents.pharmacy_agent import PharmacyAgent
 from app.agents.claim_form_agent import ClaimFormAgent
 
 from app.utils.pdf_utils import PDFUtils
+from app.utils.json_utils import clean_json
 
 
 class Orchestrator:
@@ -35,26 +36,28 @@ class Orchestrator:
             structured = await agent.run(cleaned_text)
 
             results[doc_type] = structured
-
         missing = self.validator.detect_missing(results)
+        discrepancies = await self.validator.detect_discrepancies(results)
+
         if missing:
             decision = {"status": "rejected", "reason": "Missing required documents"}
-            print("\n\n\n---------")
-            print('decision\n\n', decision)
-            print("\n\n\n---------")
+        elif discrepancies:
+            decision = {"status": "manual_review", "reason": "Data inconsistencies found"}
         else:
             decision = {"status": "approved", "reason": "All documents consistent"}
-        # discrepancies = self.validator.detect_discrepancies(results)
 
-        # Final decision
-        # elif discrepancies:
-        #     decision = {"status": "manual_review", "reason": "Data inconsistencies found"}
+        cleaned_results = []
+        for doc_type, data in results.items():
+            cleaned_results.append({
+                doc_type: clean_json(data)
+            })
+        cleaned_discrepancies = clean_json(discrepancies)
 
         return {
-            "documents": results,
+            "documents": cleaned_results,
             "validation": {
                 "missing_documents": missing,
-            #     "discrepancies": discrepancies
+                "discrepancies": cleaned_discrepancies
             },
             "claim_decision": decision
         }

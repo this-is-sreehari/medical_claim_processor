@@ -14,26 +14,29 @@ async def process_claim(
     files: list[UploadFile] = File(...),
     db: AsyncSession = Depends(get_db_session)
 ):
-    claim_result = await orch.process(files)
+    try:
+        claim_result = await orch.process(files)
 
-    status = claim_result.get("claim_decision", {}).get("status", "")
-    if status:
-        claim = Claim(
-            status=status,
-            data=claim_result
+        claim_status = claim_result.get("claim_decision", {}).get("status", "")
+        if claim_status:
+            claim = Claim(
+                status=claim_status,
+                data=claim_result
+            )
+
+            db.add(claim)
+            await db.commit()
+            await db.refresh(claim)
+
+            return {
+                "data": claim.data
+            }
+    except Exception as e:
+        await db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Unexpected error: {str(e)}"
         )
-
-        db.add(claim)
-        await db.commit()
-        await db.refresh(claim)
-
-        return {
-            "db_record": {
-                "id": claim.id,
-                "status": claim.status
-            },
-            "claim_data": claim.data
-        }
 
 @router.get("/claims")
 async def get_all_claims(db: AsyncSession = Depends(get_db_session)):

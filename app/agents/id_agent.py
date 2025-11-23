@@ -21,7 +21,6 @@ class IDAgent:
             "gender": "",
             "id_number": "",
             "issuer": "",
-            "patient_id": ""
         }}
         """
         return await self.llm.generate(prompt)
