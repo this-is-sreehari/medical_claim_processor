@@ -6,6 +6,7 @@ from app.agents.discharge_agent import DischargeAgent
 from app.agents.id_agent import IDAgent
 from app.agents.pharmacy_agent import PharmacyAgent
 from app.agents.claim_form_agent import ClaimFormAgent
+import asyncio
 
 from app.utils.pdf_utils import PDFUtils
 from app.utils.json_utils import clean_json
@@ -25,17 +26,28 @@ class Orchestrator:
             "claim_form": ClaimFormAgent(),
         }
 
-    async def process(self, pdf_files) -> dict:
-        results = {}
+    async def _process_single_file(self, file):
+        content = await file.read()
         
-        for file in pdf_files:
-            raw_text = await PDFUtils().extract_raw_text(await file.read())
-            doc_type = await self.classifier.classify(raw_text)
-            cleaned_text = await self.extractor.extract(raw_text)
-            agent = self.agents.get(doc_type)
-            structured = await agent.run(cleaned_text)
+        raw_text = await PDFUtils().extract_raw_text(content)
 
-            results[doc_type] = structured
+        doc_type = await self.classifier.classify(raw_text)
+
+        cleaned_text = await self.extractor.extract(raw_text)
+
+        agent = self.agents.get(doc_type)
+        structured = await agent.run(cleaned_text)
+
+        return doc_type, structured
+
+    async def process(self, pdf_files) -> dict:
+        tasks = [self._process_single_file(file) for file in pdf_files]
+        outputs = await asyncio.gather(*tasks)
+
+        results = {}
+        for doc_type, structured in outputs:
+            results.setdefault(doc_type, []).append(structured)
+
         missing = self.validator.detect_missing(results)
         discrepancies = await self.validator.detect_discrepancies(results)
 
@@ -61,3 +73,4 @@ class Orchestrator:
             },
             "claim_decision": decision
         }
+
