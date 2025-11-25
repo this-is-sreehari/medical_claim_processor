@@ -36,17 +36,19 @@ class Orchestrator:
         cleaned_text = await self.extractor.extract(raw_text)
 
         agent = self.agents.get(doc_type)
-        structured = await agent.run(cleaned_text)
-
-        return doc_type, structured
+        
+        structured_data = await agent.run(cleaned_text)
+        structured_data = clean_json(structured_data)
+        
+        return doc_type, structured_data
 
     async def process(self, pdf_files) -> dict:
         tasks = [self._process_single_file(file) for file in pdf_files]
         outputs = await asyncio.gather(*tasks)
 
         results = {}
-        for doc_type, structured in outputs:
-            results.setdefault(doc_type, []).append(structured)
+        for doc_type, structured_data in outputs:
+            results.setdefault(doc_type, []).append(structured_data)
 
         missing = self.validator.detect_missing(results)
         discrepancies = await self.validator.detect_discrepancies(results)
@@ -58,11 +60,6 @@ class Orchestrator:
         else:
             decision = {"status": "approved", "reason": "All documents consistent"}
 
-        cleaned_results = []
-        for doc_type, data in results.items():
-            cleaned_results.append({
-                doc_type: clean_json(data)
-            })
         cleaned_discrepancies = clean_json(discrepancies)
 
         return {
@@ -73,4 +70,3 @@ class Orchestrator:
             },
             "claim_decision": decision
         }
-
