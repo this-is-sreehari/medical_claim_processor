@@ -1,4 +1,5 @@
 from app.services.gemini_client import GeminiClient
+from app.utils.json_utils import clean_json
 
 
 class IDAgent:
@@ -23,4 +24,7 @@ class IDAgent:
             "issuer": "",
         }}
         """
-        return await self.llm.generate(prompt)
+        result = await self.llm.generate(prompt)
+        cleaned_result = clean_json(result)
+
+        return cleaned_result
