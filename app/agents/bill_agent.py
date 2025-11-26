@@ -1,4 +1,5 @@
 from app.services.gemini_client import GeminiClient
+from app.utils.json_utils import clean_json
 
 
 class BillAgent:
@@ -17,10 +18,19 @@ class BillAgent:
             "hospital_name": "",
             "bill_amount": "",
             "bill_date": "",
-            "line_items": []
+            "line_items": [
+                {{
+                    "description": "",
+                    "quantity": "",
+                    "price": ""
+                }}
+            ]
         }}
 
         TEXT:
         {text}
         """
-        return await self.llm.generate(prompt)
+        result = await self.llm.generate(prompt)
+        cleaned_result = clean_json(result)
+
+        return cleaned_result
