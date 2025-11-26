@@ -9,6 +9,7 @@ from app.agents.claim_form_agent import ClaimFormAgent
 import asyncio
 
 from app.utils.pdf_utils import PDFUtils
+from app.utils.json_utils import clean_json
 
 
 class Orchestrator:
@@ -58,11 +59,13 @@ class Orchestrator:
         else:
             decision = {"status": "approved", "reason": "All documents consistent"}
 
+        cleaned_discrepancies = clean_json(discrepancies)
+        
         return {
             "documents": results,
             "validation": {
                 "missing_documents": missing,
-                "discrepancies": discrepancies
+                "discrepancies": cleaned_discrepancies
             },
             "claim_decision": decision
         }
